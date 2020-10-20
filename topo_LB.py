@@ -79,6 +79,6 @@ def createNet(controller_ip, controller_port):
 if __name__ == '__main__':
     setLogLevel( 'info' )
     if len(sys.argv) != 3:
-        print 'Usage: ', sys.argv[0], ' controller_ip controller_port'
+        print('Usage: ', sys.argv[0], ' controller_ip controller_port')
         sys.exit()
     createNet(sys.argv[1], int(sys.argv[2]))
