@@ -3,6 +3,7 @@
 echo "Provisioning guest VM..."
 
 sudo apt-get update
+sudo apt-get -y upgrade
 
 sudo apt-get install -y --no-install-recommends --fix-missing\
   build-essential \
@@ -18,6 +19,8 @@ sudo apt-get install -y --no-install-recommends --fix-missing\
 virtualenv -p /usr/bin/python3 ryuenv
 source ~/ryuenv/bin/activate
 pip install ryu
+# Downgrade eventlet lib (otherwise bug with Ryu...)
+pip install eventlet==0.30.2
 deactivate
 
 # ---- Setup folder lab ----
