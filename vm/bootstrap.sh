@@ -27,3 +27,6 @@ deactivate
 git clone https://github.com/elavinal/sdn-openflow-lab.git
 
 echo "**** DONE PROVISIONING VM ****"
+
+sudo reboot
+
