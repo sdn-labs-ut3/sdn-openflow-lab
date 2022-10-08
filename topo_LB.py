@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 
 """
@@ -29,12 +29,12 @@ def createNet(controller_ip, controller_port):
     net.addController( 'c0', controller=RemoteController, ip=controller_ip, port=controller_port )
 
     info( '*** Adding hosts\n' )
-    # c1 = net.addHost( 'C1' , ip= '10.0.0.1/8', defaultRoute = 'via 10.0.0.1')
-    c1  = net.addHost( 'C1',  ip='10.0.0.1/8')
-    c2  = net.addHost( 'C2',  ip='10.0.0.2/8')
-    c3  = net.addHost( 'C3',  ip='10.0.0.3/8')
-    ws1 = net.addHost( 'WS1', ip='10.0.0.11/8', mac='00:00:00:00:00:11')
-    ws2 = net.addHost( 'WS2', ip='10.0.0.22/8', mac='00:00:00:00:00:22')
+    # c1 = net.addHost( 'C1' , ip= '10.0.0.1/24', defaultRoute = 'via 10.0.0.1')
+    c1  = net.addHost( 'C1',  ip='10.0.0.1/24')
+    c2  = net.addHost( 'C2',  ip='10.0.0.2/24')
+    c3  = net.addHost( 'C3',  ip='10.0.0.3/24')
+    ws1 = net.addHost( 'WS1', ip='10.0.0.11/24', mac='00:00:00:00:00:11')
+    ws2 = net.addHost( 'WS2', ip='10.0.0.22/24', mac='00:00:00:00:00:22')
 
     info( '*** Adding switch\n' )
     s1 = net.addSwitch( 's1' )
