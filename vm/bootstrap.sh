@@ -5,8 +5,9 @@ echo "Provisioning guest VM..."
 sudo apt-get update
 sudo apt-get -y upgrade
 
-sudo apt-get install -y --no-install-recommends --fix-missing\
+sudo apt-get install -y --no-install-recommends --fix-missing \
   build-essential \
+  git \
   mininet \
   openvswitch-switch \
   python3-pip \
