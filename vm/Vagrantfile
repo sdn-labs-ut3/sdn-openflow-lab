@@ -12,8 +12,9 @@ Vagrant.configure("2") do |config|
 
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
-  config.vm.box = "hashicorp/bionic64"
+  config.vm.box = "debian/bullseye64"
   config.vm.provision :shell, privileged: false, path: "bootstrap.sh"
+  # Forward X11 for xterm
   config.ssh.forward_agent = true
   config.ssh.forward_x11 = true
 
