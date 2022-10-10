@@ -5,3 +5,6 @@ __pycache__/
 
 # Vagrant files
 .vagrant/
+
+# Solution
+solution/
