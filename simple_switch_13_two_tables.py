@@ -15,7 +15,9 @@
 
 # EDIT E. Lavinal
 #   - code based on Ryu's Simple Switch 13
-#   - new version with 2 OF tables (one to learn, one to forward)
+#   - new version with:
+#       - no state on the controller (i.e. no mac_to_port dict)
+#       - 2 OF tables (one to learn, one to forward)
 
 from ryu.base import app_manager
 from ryu.controller import ofp_event
@@ -32,7 +34,6 @@ class SimpleSwitch2Tables(app_manager.RyuApp):
 
     def __init__(self, *args, **kwargs):
         super(SimpleSwitch2Tables, self).__init__(*args, **kwargs)
-        self.mac_to_port = {}
 
     # Switch features handler
     # ========================
@@ -46,15 +47,16 @@ class SimpleSwitch2Tables(app_manager.RyuApp):
         # --------------------------------------------------
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_CONTROLLER)]
-        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
-        self.add_flow(datapath, 0, match, inst, table=0)
+        inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions),
+                parser.OFPInstructionGotoTable(table_id=1)]
+        self.add_flow(datapath, 0, match, inst, table=0, idle_timeout=0)
         
         # install table-miss flow entry in table 1 (forward)
         # --------------------------------------------------
         match = parser.OFPMatch()
         actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
         inst = [parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS, actions)]
-        self.add_flow(datapath, 0, match, inst, table=1)
+        self.add_flow(datapath, 0, match, inst, table=1, idle_timeout=0)
 
     # Packet in handler
     # ==================
@@ -74,15 +76,15 @@ class SimpleSwitch2Tables(app_manager.RyuApp):
         pkt = packet.Packet(msg.data)
         eth = pkt.get_protocols(ethernet.ethernet)[0]
 
-        if eth.ethertype == ether_types.ETH_TYPE_LLDP:
-            # ignore lldp packet
+        if (eth.ethertype == ether_types.ETH_TYPE_LLDP or 
+            eth.ethertype == ether_types.ETH_TYPE_IPV6):
+            # ignore LLDP and IPv6 packets
             return
+        
         dst = eth.dst
         src = eth.src
 
-        dpid = format(datapath.id, "d").zfill(16)
-        self.mac_to_port.setdefault(dpid, {})
-
+        dpid = datapath.id
         self.logger.info("packet in on sw %s from %s to %s (in port %s)",
                          dpid, src, dst, in_port)
         
@@ -90,35 +92,17 @@ class SimpleSwitch2Tables(app_manager.RyuApp):
         # -----------------------------
         # TODO: install forwarding entry in table 1 (avoid FLOOD next time)
         # ...
-
         
         # TODO: install "stop learning" entry in table 0 (avoid PACKET IN next time)
         # ...
 
 
-        # Learn mac address in local mac to port dict
-        # --------------------------------------------
-        self.mac_to_port[dpid][src] = in_port
-
-        # Packet-Out message
-        # -------------------
-        # TODO: set out_port
-        # ...
-        out_port = 0
-
-        actions = [parser.OFPActionOutput(out_port)]
-        data = msg.data
-        out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
-                                  in_port=in_port, actions=actions, data=data)
-        datapath.send_msg(out)
-
-
     # Utility function for the OF Modify Flow entry message
     # ======================================================
-    def add_flow(self, datapath, priority, match, instructions, table=0):
+    def add_flow(self, datapath, priority, match, instructions, table=0, idle_timeout=60):
 
         parser = datapath.ofproto_parser
-        mod = parser.OFPFlowMod(datapath=datapath, table_id=table,
-                                priority=priority, match=match,
-                                instructions=instructions)
+        mod = parser.OFPFlowMod(datapath=datapath, table_id=table, priority=priority,
+                                match=match, instructions=instructions,
+                                idle_timeout=idle_timeout)
         datapath.send_msg(mod)
